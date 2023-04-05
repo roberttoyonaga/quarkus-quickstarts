@@ -36,6 +36,7 @@ public class FruitResource {
 
     @GET
     public List<Fruit> get() {
+                doWork();
         return entityManager.createNamedQuery("Fruits.findAll", Fruit.class)
                 .getResultList();
     }
@@ -47,6 +48,7 @@ public class FruitResource {
         if (entity == null) {
             throw new WebApplicationException("Fruit with id of " + id + " does not exist.", 404);
         }
+        doWork();
         return entity;
     }
 
@@ -56,7 +58,7 @@ public class FruitResource {
         if (fruit.getId() != null) {
             throw new WebApplicationException("Id was invalidly set on request.", 422);
         }
-
+        doWork();
         entityManager.persist(fruit);
         return Response.ok(fruit).status(201).build();
     }
@@ -76,8 +78,12 @@ public class FruitResource {
         }
 
         entity.setName(fruit.getName());
-
         return entity;
+    }
+
+    private synchronized byte[] doWork(){
+        // This is to generate jdk.ObjectAllocationInNewTLAB events
+        return new byte[2048*128];
     }
 
     @DELETE
