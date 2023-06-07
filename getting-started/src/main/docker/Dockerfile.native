@@ -12,7 +12,6 @@
 # Then run the container using:
 #
 # docker run -i --rm -p 8080:8080 quarkus/getting-started
-#
 ###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3
 WORKDIR /work/
@@ -21,7 +20,7 @@ RUN chown 1001 /work \
     && chown 1001:root /work
 COPY --chown=1001:root target/*-runner /work/application
 
-EXPOSE 8080
+EXPOSE 8081
 USER 1001
 
-CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
+CMD ["./application", "-Dquarkus.http.host=0.0.0.0", "-Dcom.sun.management.jmxremote.port=9091", "-Dcom.sun.management.jmxremote.ssl=false", "-Dcom.sun.management.jmxremote.authenticate=false"]
