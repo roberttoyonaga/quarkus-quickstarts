@@ -1,3 +1,31 @@
+# Native Image JFR Type Repository Serialization Optimization Study
+In this repository you'll find the ".jfr" files that contain the results of the test. The study basically uses the out-of-the-box hibernate-orm-quickstart, along with a hyperfoil load test script (to induce some JFR events). Simply follow the original demo instructions below to build and run in native mode.
+
+### Steps to do the study are as follows
+1. Build GraalVM with the optimization changes (from the PR branch). Set GRAALVM_HOME environment variable to the optimized GraalVM.
+2. Build the quickstart following the original instructions below in native mode. The only change is you'll need is to build with the following command to enable JFR and the SIGPROF handler required for method profiling.
+> ./mvnw package -Dnative -DskipTests -Dquarkus.native.monitoring=jfr -Dquarkus.native.additional-build-args=-H:+SignalHandlerBasedExecutionSampler
+
+3. Run hyperfoil cli with:
+> start-local
+4. Upload the `quarkus-fruit.hf.yaml` script.
+> upload /path/to/hibernate-orm-quickstart/quarkus-fruit.hf.yaml
+
+5. Start the database following the original instructions below.
+
+6. Start the native application with JFR. 
+>./target/hibernate-orm-quickstart-1.0.0-SNAPSHOT-runner -XX:+FlightRecorder -XX:StartFlightRecording=settings=/path/to/hibernate-orm-quickstart/quarkus-demo.jfc,filename=original_1.jfr,duration=10s
+
+
+7. You can then run the hyperfoil script in the hyperfoil CLI with
+> run
+
+8. Once the ".jfr" file has been created (after 10s). You can kill the app and database.
+9. Inspect the number of TLABs created as a result of the JFR periodic thread executing `JfrTypeRepository.collectTypeInfo()`. Inspect the percentage of time spent in `HeapImple.getLoadedClasses()` (or simply divide the number of samples taken in that method by the total number of method samples collected.)
+10. Repeat steps 5-9 10 times with and without the optimization changes. (20 times in total).
+
+
+
 # Quarkus demo: Hibernate ORM and RESTEasy
 
 This is a minimal CRUD service exposing a couple of endpoints over REST,
